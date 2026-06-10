@@ -18,17 +18,7 @@
 name: Backend
 
 on:
-  push:
-    branches:
-      - dev
-      - release-*
-      - dev-*
-    paths-ignore:
-      - '**.md'
-      - 'deploy/**'
-      - 'script/**'
-      - 'streampark-console/streampark-console-webapp/**'
-  pull_request:
+  workflow_dispatch:
 
 
 concurrency:
@@ -62,9 +52,9 @@ jobs:
       - name: Check license header
         uses: apache/skywalking-eyes/header@main
   code-style:
-    if: github.repository == 'apache/streampark'
+    if: always()
     name: Code style
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: license-header
     timeout-minutes: 10
     steps:
@@ -73,14 +63,25 @@ jobs:
           submodules: true
       - name: Check codestyle
         run: ./mvnw -B -q -nsu checkstyle:check spotless:check
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+      fail-fast: false
   build:
     name: "Backend-Build (java-${{ matrix.java }})"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: code-style
     strategy:
       fail-fast: false
       matrix:
-        java: [ 8 , 11 ]
+        java: [8, 11]
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,7 +104,7 @@ jobs:
     name: Backend - Result
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [ paths-filter, build, license-header, code-style ]
+    needs: [paths-filter, build, license-header, code-style]
     if: always()
     steps:
       - name: Status
