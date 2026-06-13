@@ -58,9 +58,18 @@ jobs:
     needs: license-header
     timeout-minutes: 10
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Set up Java 11 (non-Linux)
+        if: runner.os != 'Linux'
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: adopt
       - name: Check codestyle
         run: ./mvnw -B -q -nsu checkstyle:check spotless:check
     strategy:
@@ -109,11 +118,11 @@ jobs:
     steps:
       - name: Status
         run: |
-          if [[ ${{ needs.paths-filter.outputs.not-ignore }} == 'false' && ${{ github.event_name }} == 'pull_request' ]]; then
+          if [[ '${{ needs.paths-filter.outputs.not-ignore }}' == 'false' && '${{ github.event_name }}' == 'pull_request' ]]; then
             echo "Skip Backend!"
             exit 0
           fi
-          if [[ ${{ contains(needs.*.result, 'success') }} != 'true' ]]; then
+          if [[ '${{ contains(needs.*.result, 'success') }}' != 'true' ]]; then
             echo "Backend Build Failed!"
             exit -1
           fi
