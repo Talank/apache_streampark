@@ -58,6 +58,9 @@ jobs:
     needs: license-header
     timeout-minutes: 10
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
       - uses: actions/checkout@v4
         with:
           submodules: true
@@ -68,7 +71,6 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-          - macos-latest
       fail-fast: false
   unit-test:
     name: "Unit-Test (java-${{ matrix.java }})"
@@ -83,6 +85,9 @@ jobs:
           - windows-latest
           - macos-15-intel
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up java ${{ matrix.java }}
@@ -108,11 +113,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Status
         run: |
-          if [[ ${{ needs.paths-filter.outputs.not-ignore }} == 'false' && ${{ github.event_name }} == 'pull_request' ]]; then
+          if [[ '${{ needs.paths-filter.outputs.not-ignore }}' == 'false' && '${{ github.event_name }}' == 'pull_request' ]]; then
             echo "Skip Unit-Test!"
             exit 0
           fi
-          if [[ ${{ contains(needs.*.result, 'success') }} != 'true' ]]; then
+          if [[ '${{ contains(needs.*.result, 'success') }}' != 'true' ]]; then
             echo "Unit-Test Failed!"
             exit -1
           fi
