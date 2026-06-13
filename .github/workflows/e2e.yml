@@ -57,9 +57,17 @@ jobs:
     needs: license-header
     timeout-minutes: 10
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'adopt'
       - name: Check codestyle
         run: ./mvnw -B -q -nsu checkstyle:check spotless:check
     strategy:
@@ -233,11 +241,11 @@ jobs:
     steps:
       - name: Status
         run: |
-          if [[ ${{ needs.paths-filter.outputs.not-ignore }} == 'false' && ${{ github.event_name }} == 'pull_request' ]]; then
+          if [[ "${{ needs.paths-filter.outputs.not-ignore }}" == 'false' && "${{ github.event_name }}" == 'pull_request' ]]; then
             echo "Skip E2E!"
             exit 0
           fi
-          if [[ ${{ needs.e2e.result }} != 'success' ]]; then
+          if [[ "${{ needs.e2e.result }}" != 'success' ]]; then
             echo "E2E Failed!"
             exit 0
           fi
