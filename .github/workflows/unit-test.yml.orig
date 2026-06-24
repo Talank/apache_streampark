@@ -58,18 +58,9 @@ jobs:
     needs: license-header
     timeout-minutes: 10
     steps:
-      - name: Enable Git long paths (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: git config --global core.longpaths true
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Set up Java 11 for codestyle
-        uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: 'adopt'
       - name: Check codestyle
         run: ./mvnw -B -q -nsu checkstyle:check spotless:check
     strategy:
@@ -92,10 +83,6 @@ jobs:
           - windows-latest
           - macos-15-intel
     steps:
-      - name: Enable Git long paths (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: git config --global core.longpaths true
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up java ${{ matrix.java }}
