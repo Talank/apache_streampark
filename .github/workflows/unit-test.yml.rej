@@ -1,0 +1,18 @@
+@@ -88,8 +88,15 @@
+       - name: Cache local Maven repository
+         uses: actions/cache@v4
+         with:
+           path: ~/.m2/repository
+           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-unit-test
+           restore-keys: ${{ runner.os }}-maven-
+       - name: Unit-Test with Maven
+-        run: ./mvnw clean -B test
++        if: runner.os != 'Windows'
++        run: |
++          chmod +x ./mvnw
++          ./mvnw clean -B test
++      - name: Unit-Test with Maven (Windows)
++        if: runner.os == 'Windows'
++        shell: pwsh
++        run: .\mvnw.cmd clean -B test
+\ No newline at end of line
