@@ -18,14 +18,7 @@
 name: "Build Docker Image"
 
 on:
-  schedule:
-    - cron: '00 00 * * *'
-  push:
-    branches:
-      - release-*
-    tags:
-      - 'v[2-9]+.[0-9]+.[0-9]+'
-
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -55,12 +48,16 @@ jobs:
           echo "Found $TAGS_JSON"
 
   build_image:
-    runs-on: ubuntu-latest
-    if: ${{ github.repository == 'apache/streampark' && (github.event_name == 'push' || (github.event_name == 'schedule' && needs.get-tags.outputs.tags != '[]')) }}
+    runs-on: ${{ matrix.os }}
+    if: always()
     needs: get-tags
     strategy:
       matrix:
         tag: ${{ fromJson(needs.get-tags.outputs.tags) }}
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
